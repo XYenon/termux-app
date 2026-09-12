@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="mouse_aim_click">点击</string>
+    <string name="mouse_aim_ready">已固定目标。滑动开始拖动，或选择工具条操作。</string>
+    <string name="text_selection_more">更多…</string>
     <string name="action_find_in_terminal">在终端中查找</string>
     <string name="title_find_in_terminal">在终端中查找</string>
     <string name="terminal_search_results_count">第 %1$d / %2$d 项</string>

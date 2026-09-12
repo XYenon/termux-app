@@ -93,6 +93,8 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
     /** Keep track of the time when a touch event leading to sending mouse scroll events started. */
     private long mMouseStartDownTime = -1;
     private final TouchMouseDragHandler mTouchMouseDragHandler;
+    private TouchMouseOverlay mTouchMouseOverlay;
+    private boolean mConsumeMouseTouchSequence;
 
     final Scroller mScroller;
 
@@ -274,7 +276,16 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
                 if (mGestureRecognizer.isInProgress()) return;
                 if (mTerminal != null && mTerminal.isMouseTrackingActive() &&
                     !event.isFromSource(InputDevice.SOURCE_MOUSE)) {
-                    mTouchMouseDragHandler.start(event);
+                    mScroller.abortAnimation();
+                    scrolledWithFinger = false;
+                    mScrollRemainder = 0;
+                    mTouchMouseDragHandler.start(event, getWidth(), getHeight(),
+                        ViewConfiguration.get(context).getScaledTouchSlop());
+                    mConsumeMouseTouchSequence = true;
+                    performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                    if (mTouchMouseOverlay == null)
+                        mTouchMouseOverlay = new TouchMouseOverlay(TerminalView.this, mTouchMouseDragHandler);
+                    mTouchMouseOverlay.update();
                     return;
                 }
                 if (mClient.onLongPress(event)) return;
@@ -317,6 +328,7 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
      */
     public boolean attachSession(TerminalSession session) {
         if (session == mTermSession) return false;
+        cancelTouchMouse();
 
         // Tear down any active text selection while the old terminal is still
         // attached, otherwise its stale coordinates and the floating action
@@ -571,6 +583,8 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
 
     public void onScreenUpdated(boolean skipScrolling) {
         if (mTerminal == null) return;
+        if (mTouchMouseDragHandler.isActive() && !mTerminal.isMouseTrackingActive())
+            cancelTouchMouse();
         if (!skipScrolling && !isSelectingText() && !mAutoScrollDisabled) {
             mTerminal.scrollToBottom();
         }
@@ -620,6 +634,7 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
         super.onWindowFocusChanged(hasWindowFocus);
+        if (!hasWindowFocus) cancelTouchMouse();
         if (mTerminal != null) mTerminal.sendFocus(hasWindowFocus);
     }
 
@@ -702,13 +717,25 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
         if (mTerminal == null) return true;
         final int action = event.getAction();
 
-        if (!event.isFromSource(InputDevice.SOURCE_MOUSE) &&
-            mTouchMouseDragHandler.onTouchEvent(event)) {
-            if (action == MotionEvent.ACTION_UP ||
-                action == MotionEvent.ACTION_CANCEL) {
-                mGestureRecognizer.onTouchEvent(event);
+        if (!event.isFromSource(InputDevice.SOURCE_MOUSE)) {
+            if (action == MotionEvent.ACTION_DOWN) mConsumeMouseTouchSequence = false;
+            if (mTouchMouseDragHandler.isActive() && !mTerminal.isMouseTrackingActive())
+                cancelTouchMouse();
+            if (mTouchMouseDragHandler.onTouchEvent(event)) {
+                mConsumeMouseTouchSequence = true;
+                if (mTouchMouseOverlay != null) mTouchMouseOverlay.update();
             }
-            return true;
+            if (mConsumeMouseTouchSequence) {
+                // Never let the gesture recognizer turn a completed/cancelled aim into a click.
+                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                    MotionEvent cancel = MotionEvent.obtain(event);
+                    cancel.setAction(MotionEvent.ACTION_CANCEL);
+                    mGestureRecognizer.onTouchEvent(cancel);
+                    cancel.recycle();
+                    mConsumeMouseTouchSequence = false;
+                }
+                return true;
+            }
         }
 
         if (isSelectingText()) {
@@ -751,11 +778,20 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
         return true;
     }
 
+    private void cancelTouchMouse() {
+        mTouchMouseDragHandler.cancel();
+        if (mTouchMouseOverlay != null) mTouchMouseOverlay.update();
+    }
+
     @Override
     public boolean onKeyPreIme(int keyCode, KeyEvent event) {
         if (TERMINAL_VIEW_KEY_LOGGING_ENABLED)
             mClient.logInfo(LOG_TAG, "onKeyPreIme(keyCode=" + keyCode + ", event=" + event + ")");
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mTouchMouseDragHandler.isActive()) {
+                if (event.getAction() == KeyEvent.ACTION_UP) cancelTouchMouse();
+                return true;
+            }
             cancelRequestAutoFill();
             if (isSelectingText()) {
                 stopTextSelectionMode();
@@ -1247,6 +1283,7 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
      */
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        cancelTouchMouse();
         updateSize();
     }
 
@@ -1886,6 +1923,7 @@ public final class TerminalView extends SurfaceView implements SurfaceHolder.Cal
 
     @Override
     protected void onDetachedFromWindow() {
+        cancelTouchMouse();
         super.onDetachedFromWindow();
 
         removeCallbacks(mKittyAnimationRender);

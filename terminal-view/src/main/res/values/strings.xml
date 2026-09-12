@@ -2,4 +2,6 @@
   <string name="paste_text">Paste</string>
   <string name="copy_text">Copy</string>
   <string name="text_selection_more">More…</string>
+  <string name="mouse_aim_click">Click</string>
+  <string name="mouse_aim_ready">Target fixed. Swipe to drag, or choose an action.</string>
 </resources>
