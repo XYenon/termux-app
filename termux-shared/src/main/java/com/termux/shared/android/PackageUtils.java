@@ -216,7 +216,7 @@ public class PackageUtils {
     public static String getApplicationInfoSeInfoForPackage(@NonNull final ApplicationInfo applicationInfo) {
         ReflectionUtils.bypassHiddenAPIReflectionRestrictions();
         try {
-            return (String) ReflectionUtils.invokeField(ApplicationInfo.class, Build.VERSION.SDK_INT < Build.VERSION_CODES.O ? "seinfo" : "seInfo", applicationInfo).value;
+            return (String) ReflectionUtils.invokeField(ApplicationInfo.class, "seInfo", applicationInfo).value;
         } catch (Exception e) {
             // ClassCastException may be thrown
             Logger.logStackTraceWithMessage(LOG_TAG, "Failed to get seInfo field value for ApplicationInfo class", e);
@@ -234,7 +234,6 @@ public class PackageUtils {
      */
     @Nullable
     public static String getApplicationInfoSeInfoUserForPackage(@NonNull final ApplicationInfo applicationInfo) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null;
         ReflectionUtils.bypassHiddenAPIReflectionRestrictions();
         try {
             return (String) ReflectionUtils.invokeField(ApplicationInfo.class, "seInfoUser", applicationInfo).value;

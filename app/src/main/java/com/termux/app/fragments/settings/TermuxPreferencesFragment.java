@@ -20,7 +20,7 @@ public class TermuxPreferencesFragment extends PreferenceFragmentCompat {
         if (context == null) return;
 
         PreferenceManager preferenceManager = getPreferenceManager();
-        preferenceManager.setPreferenceDataStore(TermuxPreferencesDataStore.getInstance(context));
+        preferenceManager.setPreferenceDataStore(new TermuxPreferencesDataStore(context));
 
         setPreferencesFromResource(R.xml.termux_preferences, rootKey);
     }
@@ -32,18 +32,9 @@ class TermuxPreferencesDataStore extends PreferenceDataStore {
     private final Context mContext;
     private final TermuxAppSharedPreferences mPreferences;
 
-    private static TermuxPreferencesDataStore mInstance;
-
-    private TermuxPreferencesDataStore(Context context) {
+    TermuxPreferencesDataStore(Context context) {
         mContext = context;
         mPreferences = TermuxAppSharedPreferences.build(context, true);
-    }
-
-    public static synchronized TermuxPreferencesDataStore getInstance(Context context) {
-        if (mInstance == null) {
-            mInstance = new TermuxPreferencesDataStore(context);
-        }
-        return mInstance;
     }
 
 }

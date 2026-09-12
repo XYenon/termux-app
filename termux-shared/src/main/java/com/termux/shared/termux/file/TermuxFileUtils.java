@@ -2,6 +2,7 @@ package com.termux.shared.termux.file;
 
 import static com.termux.shared.termux.TermuxConstants.TERMUX_PREFIX_DIR_PATH;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 
@@ -124,6 +125,8 @@ public class TermuxFileUtils {
      * @param path The {@code path} to check.
      * @return Returns the allowed path if it {@code path} is under it, otherwise {@link TermuxConstants#TERMUX_FILES_DIR_PATH}.
      */
+    // Preserve recognition and return of the stable /sdcard filesystem alias.
+    @SuppressLint("SdCardPath")
     public static String getMatchedAllowedTermuxWorkingDirectoryParentPathForPath(String path) {
         if (path == null || path.isEmpty()) return TermuxConstants.TERMUX_FILES_DIR_PATH;
 

@@ -1,5 +1,6 @@
 package com.termux.shared.termux.shell.command.environment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -18,6 +19,7 @@ import com.termux.shared.termux.TermuxUtils;
 import com.termux.shared.termux.shell.am.TermuxAmSocketServer;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Environment for {@link TermuxConstants#TERMUX_PACKAGE_NAME} app.
@@ -143,7 +145,9 @@ public class TermuxAppShellEnvironment {
              */
 
             ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX_APP__DATA_DIR, applicationInfo.dataDir);
-            ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX_APP__LEGACY_DATA_DIR, "/data/data/" + applicationInfo.packageName);
+            // This environment variable intentionally exposes Termux's legacy path contract.
+            ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX_APP__LEGACY_DATA_DIR,
+                getLegacyDataDir(applicationInfo.packageName));
 
             ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX__SE_PROCESS_CONTEXT, SELinuxUtils.getContext());
             ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX_APP__SE_FILE_CONTEXT, SELinuxUtils.getFileContext(applicationInfo.dataDir));
@@ -152,8 +156,7 @@ public class TermuxAppShellEnvironment {
             ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX_APP__SE_INFO, PackageUtils.getApplicationInfoSeInfoForPackage(applicationInfo) +
                 (DataUtils.isNullOrEmpty(seInfoUser) ? "" : seInfoUser));
 
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX__USER_ID, String.valueOf(PackageUtils.getUserIdForPackage(currentPackageContext)));
+            ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX__USER_ID, String.valueOf(PackageUtils.getUserIdForPackage(currentPackageContext)));
             ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX__PROFILE_OWNER, PackageUtils.getProfileOwnerPackageNameForUser(currentPackageContext));
         }
 
@@ -167,8 +170,13 @@ public class TermuxAppShellEnvironment {
             TermuxConstants.TERMUX_PACKAGE_NAME);
         if (signingCertificateSHA256Digest != null) {
             ShellEnvironmentUtils.putToEnvIfSet(environment, ENV_TERMUX_APP__APK_RELEASE,
-                TermuxUtils.getAPKRelease(signingCertificateSHA256Digest).replaceAll("[^a-zA-Z]", "_").toUpperCase());
+                TermuxUtils.getAPKRelease(signingCertificateSHA256Digest).replaceAll("[^a-zA-Z]", "_").toUpperCase(Locale.ROOT));
         }
+    }
+
+    @SuppressLint("SdCardPath")
+    private static String getLegacyDataDir(@NonNull String packageName) {
+        return "/data/data/" + packageName;
     }
 
     /** Update {@link #ENV_TERMUX_APP__AM_SOCKET_SERVER_ENABLED} value in {@code environment}. */

@@ -5,9 +5,15 @@ android {
     compileSdkVersion project.properties.compileSdkVersion.toInteger()
 
     dependencies {
+        // These UI libraries are pinned to the AGP 4.2 / compileSdk 30 stack.
+        // Upgrade them together with the build toolchain, not independently during lint cleanup.
+        // noinspection GradleDependency
         implementation "androidx.appcompat:appcompat:1.3.1"
+        // noinspection GradleDependency
         implementation "androidx.annotation:annotation:1.3.0"
+        // noinspection GradleDependency
         implementation "androidx.core:core:1.6.0"
+        // noinspection GradleDependency
         implementation "com.google.android.material:material:1.4.0"
         implementation "com.google.guava:guava:24.1-jre"
         implementation "io.noties.markwon:core:$markwonVersion"
@@ -64,8 +70,13 @@ android {
 
 dependencies {
     testImplementation "junit:junit:4.13.2"
+    // Keep instrumentation libraries compatible with compileSdk 30.
+    // noinspection GradleDependency
     androidTestImplementation "androidx.test.ext:junit:1.1.3"
+    // noinspection GradleDependency
     androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
+    // Desugared library 2.x requires a newer Android Gradle Plugin than 4.2.
+    // noinspection GradleDependency
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
 }
 

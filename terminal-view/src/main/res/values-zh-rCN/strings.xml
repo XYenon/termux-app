@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="text_selection_more">更多…</string>
+    <string name="mouse_aim_click">点击</string>
+    <string name="mouse_aim_ready">目标已固定。滑动以拖动，或选择一项操作。</string>
+    <string name="paste_text">粘贴</string>
+    <string name="copy_text">复制</string>
+</resources>

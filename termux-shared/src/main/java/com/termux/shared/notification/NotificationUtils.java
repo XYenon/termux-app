@@ -77,8 +77,7 @@ public class NotificationUtils {
 
         builder.setPriority(priority);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            builder.setChannelId(channelId);
+        builder.setChannelId(channelId);
 
         builder = setNotificationDefaults(builder, notificationMode);
 
@@ -96,8 +95,6 @@ public class NotificationUtils {
      *                   posted to this channel are.
      */
     public static void setupNotificationChannel(final Context context, final String channelId, final CharSequence channelName, final int importance) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
-
         NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
 
         NotificationManager notificationManager = getNotificationManager(context);

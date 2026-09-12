@@ -38,6 +38,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class FileUtils {
@@ -131,7 +132,7 @@ public class FileUtils {
             fileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
 
         if (toLower)
-            return fileName.toLowerCase();
+            return fileName.toLowerCase(Locale.ROOT);
         else
             return fileName;
     }
@@ -1101,7 +1102,7 @@ public class FileUtils {
 
                 // If overwriteOnlyIfDestSameFileTypeAsSrc is enabled but destination file does not match source file type
                 if (overwriteOnlyIfDestSameFileTypeAsSrc && destFileType != srcFileType)
-                    return FileUtilsErrno.ERRNO_CANNOT_OVERWRITE_A_DIFFERENT_FILE_TYPE.getError(label + "source file", mode.toLowerCase(), srcFilePath, destFilePath, destFileType.getName(), srcFileType.getName());
+                    return FileUtilsErrno.ERRNO_CANNOT_OVERWRITE_A_DIFFERENT_FILE_TYPE.getError(label + "source file", mode.toLowerCase(Locale.ROOT), srcFilePath, destFilePath, destFileType.getName(), srcFileType.getName());
 
                 // Delete the destination file
                 error = deleteFile(label + "destination", destFilePath, true);
@@ -1146,22 +1147,9 @@ public class FileUtils {
                     // Will give runtime exceptions on android < 8 due to missing classes like java.nio.file.Path if org.apache.commons.io version > 2.5
                     org.apache.commons.io.FileUtils.copyDirectory(srcFile, destFile, true);
                 } else if (srcFileType == FileType.SYMLINK) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        java.nio.file.Files.copy(srcFile.toPath(), destFile.toPath(), LinkOption.NOFOLLOW_LINKS, StandardCopyOption.REPLACE_EXISTING);
-                    } else {
-                        // read the target for the source file and create a symlink at dest
-                        // source file metadata will be lost
-                        error = createSymlinkFile(label + "dest", Os.readlink(srcFilePath), destFilePath);
-                        if (error != null)
-                            return error;
-                    }
+                    java.nio.file.Files.copy(srcFile.toPath(), destFile.toPath(), LinkOption.NOFOLLOW_LINKS, StandardCopyOption.REPLACE_EXISTING);
                 } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        java.nio.file.Files.copy(srcFile.toPath(), destFile.toPath(), LinkOption.NOFOLLOW_LINKS, StandardCopyOption.REPLACE_EXISTING);
-                    } else {
-                        // Will give runtime exceptions on android < 8 due to missing classes like java.nio.file.Path if org.apache.commons.io version > 2.5
-                        org.apache.commons.io.FileUtils.copyFile(srcFile, destFile, true);
-                    }
+                    java.nio.file.Files.copy(srcFile.toPath(), destFile.toPath(), LinkOption.NOFOLLOW_LINKS, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
 
@@ -1316,8 +1304,7 @@ public class FileUtils {
 
             Logger.logVerbose(LOG_TAG, "Deleting " + label + "file at path \"" + filePath + "\"");
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                /*
+            /*
                  * Try to use {@link SecureDirectoryStream} if available for safer directory
                  * deletion, it should be available for android >= 8.0
                  * https://guava.dev/releases/24.1-jre/api/docs/com/google/common/io/MoreFiles.html#deleteRecursively-java.nio.file.Path-com.google.common.io.RecursiveDeleteOption...-
@@ -1336,17 +1323,7 @@ public class FileUtils {
                  * https://github.com/google/guava/blob/v30.1.1/guava/src/com/google/common/io/MoreFiles.java#L775
                  */
                 //noinspection UnstableApiUsage
-                com.google.common.io.MoreFiles.deleteRecursively(file.toPath(), RecursiveDeleteOption.ALLOW_INSECURE);
-            } else {
-                if (fileType == FileType.DIRECTORY) {
-                    // deleteDirectory() instead of forceDelete() gets the files list first instead of walking directory tree, so seems safer
-                    // Will give runtime exceptions on android < 8 due to missing classes like java.nio.file.Path if org.apache.commons.io version > 2.5
-                    org.apache.commons.io.FileUtils.deleteDirectory(file);
-                } else {
-                    // Will give runtime exceptions on android < 8 due to missing classes like java.nio.file.Path if org.apache.commons.io version > 2.5
-                    org.apache.commons.io.FileUtils.forceDelete(file);
-                }
-            }
+            com.google.common.io.MoreFiles.deleteRecursively(file.toPath(), RecursiveDeleteOption.ALLOW_INSECURE);
 
             // If file still exists after deleting it
             fileType = getFileType(filePath, false);
@@ -1406,15 +1383,10 @@ public class FileUtils {
 
             // If directory exists, clear its contents
             if (fileType == FileType.DIRECTORY) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    /* If an exception is thrown, the exception message might not contain the full errors.
-                     * Individual failures get added to suppressed throwables. */
-                    //noinspection UnstableApiUsage
-                    com.google.common.io.MoreFiles.deleteDirectoryContents(file.toPath(), RecursiveDeleteOption.ALLOW_INSECURE);
-                } else {
-                    // Will give runtime exceptions on android < 8 due to missing classes like java.nio.file.Path if org.apache.commons.io version > 2.5
-                    org.apache.commons.io.FileUtils.cleanDirectory(new File(filePath));
-                }
+                /* If an exception is thrown, the exception message might not contain the full errors.
+                 * Individual failures get added to suppressed throwables. */
+                //noinspection UnstableApiUsage
+                com.google.common.io.MoreFiles.deleteDirectoryContents(file.toPath(), RecursiveDeleteOption.ALLOW_INSECURE);
             }
             // Else create it
             else {

@@ -25,7 +25,7 @@ public class DebuggingPreferencesFragment extends PreferenceFragmentCompat {
         if (context == null) return;
 
         PreferenceManager preferenceManager = getPreferenceManager();
-        preferenceManager.setPreferenceDataStore(DebuggingPreferencesDataStore.getInstance(context));
+        preferenceManager.setPreferenceDataStore(new DebuggingPreferencesDataStore(context));
 
         setPreferencesFromResource(R.xml.termux_debugging_preferences, rootKey);
 
@@ -69,18 +69,9 @@ class DebuggingPreferencesDataStore extends PreferenceDataStore {
     private final Context mContext;
     private final TermuxAppSharedPreferences mPreferences;
 
-    private static DebuggingPreferencesDataStore mInstance;
-
-    private DebuggingPreferencesDataStore(Context context) {
+    DebuggingPreferencesDataStore(Context context) {
         mContext = context;
         mPreferences = TermuxAppSharedPreferences.build(context, true);
-    }
-
-    public static synchronized DebuggingPreferencesDataStore getInstance(Context context) {
-        if (mInstance == null) {
-            mInstance = new DebuggingPreferencesDataStore(context);
-        }
-        return mInstance;
     }
 
 

@@ -41,11 +41,7 @@ public class BellHandler {
             public void run() {
                 if (vibrator != null) {
                     try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vibrator.vibrate(VibrationEffect.createOneShot(DURATION, VibrationEffect.DEFAULT_AMPLITUDE));
-                        } else {
-                            vibrator.vibrate(DURATION);
-                        }
+                        vibrator.vibrate(VibrationEffect.createOneShot(DURATION, VibrationEffect.DEFAULT_AMPLITUDE));
                     } catch (Exception e) {
                         // Issue on samsung devices on android 8
                         // java.lang.NullPointerException: Attempt to read from field 'android.os.VibrationEffect com.android.server.VibratorService$Vibration.mEffect' on a null object reference

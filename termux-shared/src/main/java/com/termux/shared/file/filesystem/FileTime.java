@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -147,7 +148,7 @@ public final class FileTime {
         try {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(milliSeconds);
-            return new SimpleDateFormat(format).format(calendar.getTime());
+            return new SimpleDateFormat(format, Locale.getDefault()).format(calendar.getTime());
         } catch(Exception e) {
             return Long.toString(milliSeconds);
         }

@@ -1,6 +1,7 @@
 package com.termux.shared.interact;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
@@ -192,6 +193,8 @@ public class ShareUtils {
      * @param showToast If set to {@code true}, then a toast is shown if saving to file is successful.
      * @param storagePermissionRequestCode The request code to use while asking for permission.
      */
+    // /sdcard is an Android filesystem alias that may differ from the Environment-resolved path.
+    @SuppressLint("SdCardPath")
     public static void saveTextToFile(final Context context, final String label, final String filePath, final String text, final boolean showToast, final int storagePermissionRequestCode) {
         if (context == null || filePath == null || filePath.isEmpty() || text == null) return;
 
@@ -201,7 +204,7 @@ public class ShareUtils {
             !PermissionUtils.checkPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             Logger.logErrorAndShowToast(context, LOG_TAG, context.getString(R.string.msg_storage_permission_not_granted));
 
-            if (storagePermissionRequestCode >= 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (storagePermissionRequestCode >= 0) {
                 if (context instanceof AppCompatActivity)
                     PermissionUtils.requestPermission(((AppCompatActivity) context), Manifest.permission.WRITE_EXTERNAL_STORAGE, storagePermissionRequestCode);
                 else if (context instanceof Activity)

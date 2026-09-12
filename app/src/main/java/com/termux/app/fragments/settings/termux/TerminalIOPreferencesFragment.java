@@ -20,7 +20,7 @@ public class TerminalIOPreferencesFragment extends PreferenceFragmentCompat {
         if (context == null) return;
 
         PreferenceManager preferenceManager = getPreferenceManager();
-        preferenceManager.setPreferenceDataStore(TerminalIOPreferencesDataStore.getInstance(context));
+        preferenceManager.setPreferenceDataStore(new TerminalIOPreferencesDataStore(context));
 
         setPreferencesFromResource(R.xml.termux_terminal_io_preferences, rootKey);
     }
@@ -32,18 +32,9 @@ class TerminalIOPreferencesDataStore extends PreferenceDataStore {
     private final Context mContext;
     private final TermuxAppSharedPreferences mPreferences;
 
-    private static TerminalIOPreferencesDataStore mInstance;
-
-    private TerminalIOPreferencesDataStore(Context context) {
+    TerminalIOPreferencesDataStore(Context context) {
         mContext = context;
         mPreferences = TermuxAppSharedPreferences.build(context, true);
-    }
-
-    public static synchronized TerminalIOPreferencesDataStore getInstance(Context context) {
-        if (mInstance == null) {
-            mInstance = new TerminalIOPreferencesDataStore(context);
-        }
-        return mInstance;
     }
 
 

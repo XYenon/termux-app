@@ -46,35 +46,29 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <LinearLayout
+            <HorizontalScrollView
+                android:id="@+id/text_io_horizontal_scroll_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:fillViewport="true">
 
-                <HorizontalScrollView
-                    android:id="@+id/text_io_horizontal_scroll_view"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:id="@+id/text_io_text_linear_layout"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:fillViewport="true">
+                    android:orientation="vertical">
 
-                    <LinearLayout
-                        android:id="@+id/text_io_text_linear_layout"
-                        android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/text_io_text"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical">
+                        android:gravity="start|top"
+                        android:inputType="textMultiLine"
+                        android:importantForAutofill="no"
+                        tools:ignore="LabelFor" />
+                </LinearLayout>
 
-                        <EditText
-                            android:id="@+id/text_io_text"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="start|top"
-                            android:inputType="textMultiLine"
-                            android:importantForAutofill="no"
-                            tools:ignore="LabelFor" />
-                    </LinearLayout>
-
-                </HorizontalScrollView>
-            </LinearLayout>
+            </HorizontalScrollView>
         </androidx.core.widget.NestedScrollView>
 
         <TextView
